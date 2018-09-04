@@ -16,7 +16,7 @@ agent: ./cmd/agent.go $(INTERNAL_SRC) $(ASSET_FILES)
 	go build ./cmd/agent.go
 
 .PHONY: docker
-docker: agent
+docker:
 	docker build --tag gitzup/agent:$(TAG) --file ./build/Dockerfile .
 
 .PHONY: docker
