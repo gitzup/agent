@@ -6,6 +6,7 @@ RUN dep ensure -v -vendor-only
 COPY ./api ./api/
 COPY ./cmd ./cmd/
 COPY ./internal ./internal/
+COPY ./pkg ./pkg/
 COPY ./Makefile ./
 RUN make
 
