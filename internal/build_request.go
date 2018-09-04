@@ -4,7 +4,7 @@ import (
 	"log"
 	"path"
 
-	"../pkg"
+	"github.com/gitzup/agent/pkg"
 )
 
 // Build request.
