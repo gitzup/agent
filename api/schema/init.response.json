@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://gitzup.com/v1/schema/init.response.json",
+    "description": "Resource protocol 'init' response.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "configSchema",
+        "stateAction"
+    ],
+    "properties": {
+        "configSchema": {
+            "$ref": "http://json-schema.org/draft-07/schema#"
+        },
+        "stateAction": {
+            "$ref": "http://gitzup.com/v1/schema/action.json"
+        }
+    }
+}

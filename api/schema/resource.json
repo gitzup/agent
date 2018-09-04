@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://gitzup.com/v1/schema/resource.json",
+    "description": "A resource specification.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "type"
+    ],
+    "properties": {
+        "type": {
+            "description": "Resource type. This is a Docker image reference (including the tag).",
+            "type": "string",
+            "minLength": 3
+        },
+        "config": {
+            "description": "Resource configuration. This is sent to the resource Docker image on execution.",
+            "type": "object",
+            "additionalProperties": true
+        }
+    }
+}

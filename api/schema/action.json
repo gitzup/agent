@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://gitzup.com/v1/schema/action.json",
+    "description": "Resource protocol 'action'.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "image"
+    ],
+    "properties": {
+        "image": {
+            "type": "string",
+            "pattern": "^[^:]+(?::[^:]+)?$"
+        },
+        "entrypoint": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "cmd": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "minLength": 1
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        }
+    }
+}

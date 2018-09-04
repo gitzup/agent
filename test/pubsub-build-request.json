@@ -1,0 +1,10 @@
+{
+    "resources": {
+        "test1": {
+            "type": "gitzup/gcp-project:dev",
+            "config": {
+                "c": "d"
+            }
+        }
+    }
+}

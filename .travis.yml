@@ -1,0 +1,20 @@
+sudo: required
+
+language: bash
+
+services:
+- docker
+
+addons:
+  apt:
+    packages:
+    - docker-ce
+
+before_script:
+- echo -n "${DOCKER_IO_PASSWORD}" | docker login --username ${DOCKER_IO_USERNAME} --password-stdin
+
+script:
+- TAG=${TRAVIS_COMMIT} make push-docker
+
+after_script:
+- rm -fv ~/.docker/config.json
