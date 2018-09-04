@@ -22,3 +22,5 @@ docker:
 .PHONY: docker
 push-docker: docker
 	docker push gitzup/agent:$(TAG)
+	docker tag gitzup/agent:$(TAG) gitzup/agent:latest
+	docker push gitzup/agent:latest
