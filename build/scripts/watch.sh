@@ -17,7 +17,7 @@ while true; do
         EVENT="First run."
         RC=0
     else
-        EVENT=$(inotifywait -e create,modify,delete -t 1 -r -q ./Makefile ./api ./cmd ./internal)
+        EVENT=$(inotifywait -e create,modify,delete -t 1 -r -q ./main.go ./Makefile ./api ./internal ./pkg)
         RC=$?
     fi
 
@@ -47,7 +47,7 @@ while true; do
             continue
         fi
 
-        GOOGLE_APPLICATION_CREDENTIALS=$(ls gcp-buildagent-key-*.local.json|head -1) ./agent &
+        GOOGLE_APPLICATION_CREDENTIALS=$(ls gcp-buildagent-key-*.local.json|head -1) ./app &
         PID=$?
         FIRST_RUN="false"
 

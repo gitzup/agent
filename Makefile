@@ -3,7 +3,7 @@ ASSET_DIRS = $(shell find ./api -type d)
 INTERNAL_SRC = $(shell find ./internal -type f -name '*.go')
 TAG ?= dev
 
-build: internal/assets.go agent
+build: app
 
 .PHONY: clean
 clean:
@@ -12,8 +12,8 @@ clean:
 internal/assets.go: $(ASSET_FILES)
 	$(GOPATH)/bin/go-bindata -o ./internal/assets.go -pkg internal -prefix api/ $(ASSET_DIRS)
 
-agent: ./cmd/agent.go $(INTERNAL_SRC) $(ASSET_FILES)
-	go build ./cmd/agent.go
+app: ./main.go $(INTERNAL_SRC) $(ASSET_FILES)
+	go build -o app ./main.go
 
 .PHONY: docker
 docker:
