@@ -75,7 +75,6 @@ func (resource *Resource) Initialize() error {
 		ContainerName: fmt.Sprintf("%s-%s-init", resource.request.Id, resource.Name),
 		Env: []string{
 			fmt.Sprintf("GITZUP=%t", true),
-			fmt.Sprintf("GITZUP_VERSION=%s", Version),
 			fmt.Sprintf("RESOURCE_NAME=%s", resource.Name),
 			fmt.Sprintf("RESOURCE_TYPE=%s", resource.Type),
 		},

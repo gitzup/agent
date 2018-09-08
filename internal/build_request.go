@@ -9,8 +9,9 @@ import (
 
 // Build request.
 type BuildRequest struct {
-	Id        string                `json:"id"`
-	Resources *map[string]*Resource `json:"resources"`
+	Id            string                `json:"id"`
+	Resources     *map[string]*Resource `json:"resources"`
+	workspacePath string
 }
 
 // Returns the build request's ID.
@@ -29,11 +30,11 @@ func (request *BuildRequest) GetResources() *map[string]pkg.Resource {
 
 // Returns the build request's local workspace path.
 func (request *BuildRequest) GetWorkspacePath() string {
-	return path.Join(Config.Workspace, request.Id)
+	return path.Join(request.workspacePath, request.Id)
 }
 
 // Parse the build request from the given bytes array.
-func ParseBuildRequest(id string, b []byte) (*BuildRequest, error) {
+func ParseBuildRequest(id string, b []byte, workspacePath string) (*BuildRequest, error) {
 	var req BuildRequest
 
 	// validate & parse the build request
@@ -44,6 +45,7 @@ func ParseBuildRequest(id string, b []byte) (*BuildRequest, error) {
 
 	// post-parsing updates
 	req.Id = id
+	req.workspacePath = workspacePath
 	for name, resource := range *req.Resources {
 		resource.request = &req
 		resource.Name = name

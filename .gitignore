@@ -1,6 +1,9 @@
 # Binaries for programs and plugins
 /app
 
+# Build temporary files
+/Gitzup__*
+
 # Test binary, build with `go test -c`
 *.test
 

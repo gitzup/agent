@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/gitzup/agent/internal"
+	"github.com/gitzup/agent/cmd"
 )
 
 func main() {
-	internal.StartDaemon()
+	cmd.Execute()
 }

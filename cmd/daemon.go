@@ -1,32 +1,40 @@
-package internal
+package cmd
 
 import (
-	"cloud.google.com/go/pubsub"
-	"golang.org/x/net/context"
+	"context"
 	"log"
+
+	"cloud.google.com/go/pubsub"
+	"github.com/gitzup/agent/internal"
+	"github.com/spf13/cobra"
 )
 
-func StartDaemon() {
+var daemonCmd = &cobra.Command{
+	Use:   "daemon",
+	Short: "Start the Gitzup agent daemon.",
+	Long:  `This command will start the Gitzup agent daemon, processing build request coming in through the GCP Pub/Sub subscription.`,
+	Args:  cobra.ExactArgs(2),
+	Run:   func(cmd *cobra.Command, args []string) { startDaemon(args[0], args[1]) },
+}
+
+func init() {
+	rootCmd.AddCommand(daemonCmd)
+}
+
+func startDaemon(gcpProject string, gcpSubscriptionName string) {
 
 	// Create context for the daemon
 	ctx := context.Background()
 
-	// Validate configuration
-	if Config.Project == "" {
-		Usage("GCP project is required")
-	} else if Config.Subscription == "" {
-		Usage("GCP Pub/Sub subscription is required")
-	}
-
 	// Create the Pub/Sub client
-	client, err := pubsub.NewClient(ctx, Config.Project)
+	client, err := pubsub.NewClient(ctx, gcpProject)
 	if err != nil {
 		log.Fatalf("Failed to create GCP Pub/Sub client: %v", err)
 	}
 	defer client.Close()
 
 	// Locate the subscription, fail if missing
-	subscription := client.Subscription(Config.Subscription)
+	subscription := client.Subscription(gcpSubscriptionName)
 	exists, err := subscription.Exists(ctx)
 	if err != nil {
 		log.Fatalf("Failed checking if subscription exists: %v", err)
@@ -58,7 +66,7 @@ func handleMessage(msg *pubsub.Message) {
 
 	msg.Ack()
 
-	request, err := ParseBuildRequest(msg.ID, msg.Data)
+	request, err := internal.ParseBuildRequest(msg.ID, msg.Data, workspacePath)
 	if err != nil {
 		panic(err)
 	}
