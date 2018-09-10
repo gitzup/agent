@@ -75,4 +75,6 @@ func handleMessage(msg *pubsub.Message) {
 	if err != nil {
 		panic(err)
 	}
+
+	// TODO: receive apply result, and send Pub/Sub message with JSON of result
 }
