@@ -29,6 +29,8 @@ var buildCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// TODO: receive apply result and print it as text/json
 	},
 }
 
