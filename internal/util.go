@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -37,6 +38,17 @@ type DockerRequest struct {
 	Input           interface{}
 	PreExitHandler  func(c container.ContainerCreateCreatedBody, request *DockerRequest) error
 	PostExitHandler func(c container.ContainerCreateCreatedBody, request *DockerRequest) error
+}
+
+type DockerPullStatus struct {
+	ID             string `json:"id"`
+	Status         string `json:"status"`
+	Error          string `json:"error"`
+	ProgressText   string `json:"progress"`
+	ProgressDetail struct {
+		Current int `json:"current"`
+		Total   int `json:"total"`
+	} `json:"progressDetail"`
 }
 
 type DockerError struct {
@@ -75,10 +87,55 @@ func (request *DockerRequest) ensureImagePresent() error {
 	}
 	defer reader.Close()
 
-	// TODO: pretty-print image-pull reader messages to stderr
-	if io.Copy(os.Stderr, reader); err != nil {
-		return &DockerError{Msg: "could not stream image pull progress", Cause: err, Request: *request}
+	pullEvents := json.NewDecoder(reader)
+	var event *DockerPullStatus
+	var progressMap = make(map[string]float32, 10)
+	for {
+		if err := pullEvents.Decode(&event); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return &DockerError{Msg: "could not pull image", Cause: err, Request: *request}
+		}
+
+		progressMap[event.ID+":"+event.Status] = float32(event.ProgressDetail.Current) / float32(event.ProgressDetail.Total) * 100
+		switch event.Status {
+		case "Downloading":
+			progressMap[event.ID+":Pulling fs layer"] = 100
+		case "Download complete":
+			progressMap[event.ID+":Pulling fs layer"] = 100
+			progressMap[event.ID+":Downloading"] = 100
+		case "Extracting":
+			progressMap[event.ID+":Pulling fs layer"] = 100
+			progressMap[event.ID+":Downloading"] = 100
+			progressMap[event.ID+":Verifying Checksum"] = 100
+			progressMap[event.ID+":Download complete"] = 100
+		case "Pull complete":
+			progressMap[event.ID+":Pulling fs layer"] = 100
+			progressMap[event.ID+":Downloading"] = 100
+			progressMap[event.ID+":Verifying Checksum"] = 100
+			progressMap[event.ID+":Download complete"] = 100
+			progressMap[event.ID+":Extracting"] = 100
+			progressMap[event.ID+":Pull complete"] = 100
+		case "Digest":
+			progressMap[event.ID+":Pulling fs layer"] = 100
+			progressMap[event.ID+":Downloading"] = 100
+			progressMap[event.ID+":Verifying Checksum"] = 100
+			progressMap[event.ID+":Download complete"] = 100
+			progressMap[event.ID+":Extracting"] = 100
+			progressMap[event.ID+":Pull complete"] = 100
+		}
+		builder := strings.Builder{}
+		for _, progress := range progressMap {
+			if progress > 0 && progress < 100 {
+				builder.WriteString(fmt.Sprintf("%d%% ", uint8(progress)))
+			}
+		}
+		if builder.Len() > 0 {
+			fmt.Print("\r" + builder.String() + "\033[K")
+		}
 	}
+	fmt.Print("\r\033[K\r")
 	return nil
 }
 
