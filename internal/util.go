@@ -155,6 +155,7 @@ func (request *DockerRequest) InvokeAndDoWithContainer() error {
 			AttachStderr: true,
 			OpenStdin:    true,
 			StdinOnce:    true,
+			Tty:          true,
 			Env:          request.Env,
 			Image:        request.Image,
 			Volumes:      request.Volumes,
