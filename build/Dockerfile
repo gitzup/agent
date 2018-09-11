@@ -4,6 +4,7 @@ RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 COPY ./Gopkg.lock ./Gopkg.toml ./
 RUN dep ensure -v -vendor-only
 COPY ./api ./api/
+COPY ./cmd ./cmd/
 COPY ./internal ./internal/
 COPY ./pkg ./pkg/
 COPY ./main.go ./Makefile ./

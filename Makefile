@@ -1,6 +1,6 @@
 ASSET_FILES = $(shell find ./api -type f)
 ASSET_DIRS = $(shell find ./api -type d)
-INTERNAL_SRC = $(shell find ./internal -type f -name '*.go')
+INTERNAL_SRC = $(shell find ./cmd ./internal -type f -name '*.go')
 TAG ?= dev
 
 build: app
