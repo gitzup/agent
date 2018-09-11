@@ -1,4 +1,4 @@
-FROM golang:1.9.7 AS build
+FROM golang:1.11 AS build
 WORKDIR /go/src/github.com/gitzup/agent/
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 COPY ./Gopkg.lock ./Gopkg.toml ./
