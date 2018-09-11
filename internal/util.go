@@ -194,15 +194,6 @@ func (request *DockerRequest) InvokeAndDoWithContainer() error {
 		resp.CloseWrite()
 	}
 
-	// if pre-exit handler provided, invoke it now
-	if request.PreExitHandler != nil {
-		// handle the container
-		err = request.PreExitHandler(c, request)
-		if err != nil {
-			return &DockerError{Msg: "container pre-exit handler failed", Cause: err, Request: *request}
-		}
-	}
-
 	// stream logs to our stdout
 	stdout, err := cli.ContainerLogs(ctx, c.ID, types.ContainerLogsOptions{
 		ShowStdout: true,
@@ -224,6 +215,15 @@ func (request *DockerRequest) InvokeAndDoWithContainer() error {
 	}
 	go io.Copy(os.Stdout, stdout)
 	go io.Copy(os.Stderr, stderr)
+
+	// if pre-exit handler provided, invoke it now
+	if request.PreExitHandler != nil {
+		// handle the container
+		err = request.PreExitHandler(c, request)
+		if err != nil {
+			return &DockerError{Msg: "container pre-exit handler failed", Cause: err, Request: *request}
+		}
+	}
 
 	// wait for container to finish
 	ctx30Sec, cancel := context.WithTimeout(context.Background(), 10*time.Second)
