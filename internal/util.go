@@ -150,9 +150,9 @@ func (request *DockerRequest) InvokeAndDoWithContainer() error {
 		ctx,
 		&container.Config{
 			Domainname:   "gitzup.local",
-			AttachStdin:  false,
-			AttachStdout: true, // TODO: no need here
-			AttachStderr: true, // TODO: no need here
+			AttachStdin:  true,
+			AttachStdout: true,
+			AttachStderr: true,
 			OpenStdin:    true,
 			StdinOnce:    true,
 			Env:          request.Env,
