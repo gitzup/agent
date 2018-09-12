@@ -6,8 +6,8 @@ import (
 )
 
 type BuildRequest struct {
-	Id            string              `json:"id"`
-	Resources     map[string]Resource `json:"resources"`
+	Id            string                `json:"id"`
+	Resources     *map[string]*Resource `json:"resources"`
 	workspacePath string
 }
 
@@ -23,7 +23,7 @@ func ParseBuildRequest(id string, b []byte, workspacePath string) (*BuildRequest
 	// post-parsing updates
 	req.Id = id
 	req.workspacePath = path.Join(workspacePath, req.Id)
-	for name, resource := range req.Resources {
+	for name, resource := range *req.Resources {
 		resource.request = &req
 		resource.Name = name
 	}
@@ -34,14 +34,14 @@ func ParseBuildRequest(id string, b []byte, workspacePath string) (*BuildRequest
 func (request *BuildRequest) Apply() error {
 	log.Printf("Applying build request '%s'", request.Id)
 
-	for _, resource := range request.Resources {
+	for _, resource := range *request.Resources {
 		err := resource.Initialize()
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, resource := range request.Resources {
+	for _, resource := range *request.Resources {
 		err := resource.DiscoverState()
 		if err != nil {
 			return err
