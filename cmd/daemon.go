@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/gitzup/agent/internal"
+	"github.com/gitzup/agent/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var daemonCmd = &cobra.Command{
 	Use:   "daemon",
 	Short: "Start the Gitzup agent daemon.",
 	Long:  `This command will start the Gitzup agent daemon, processing build request coming in through the GCP Pub/Sub subscription.`,
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(2), // TODO: custom usage
 	Run:   func(cmd *cobra.Command, args []string) { startDaemon(args[0], args[1]) },
 }
 
@@ -66,7 +66,7 @@ func handleMessage(msg *pubsub.Message) {
 
 	msg.Ack()
 
-	request, err := internal.ParseBuildRequest(msg.ID, msg.Data, workspacePath)
+	request, err := pkg.ParseBuildRequest(msg.ID, msg.Data, workspacePath)
 	if err != nil {
 		panic(err)
 	}

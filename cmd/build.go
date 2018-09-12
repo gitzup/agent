@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/gitzup/agent/internal"
+	"github.com/gitzup/agent/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +12,7 @@ var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Process a build request.",
 	Long:  `This command will build the providing build request.`,
-	Args:  cobra.ExactArgs(2),
+	Args:  cobra.ExactArgs(2), // TODO: custom usage
 	Run: func(cmd *cobra.Command, args []string) {
 		id := args[0]
 		bytes, err := ioutil.ReadFile(args[1])
@@ -20,7 +20,7 @@ var buildCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		request, err := internal.ParseBuildRequest(id, bytes, workspacePath)
+		request, err := pkg.ParseBuildRequest(id, bytes, workspacePath)
 		if err != nil {
 			log.Fatal(err)
 		}

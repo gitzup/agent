@@ -1,4 +1,4 @@
-package internal
+package pkg
 
 import (
 	"archive/tar"
@@ -139,7 +139,7 @@ func (request *DockerRequest) ensureImagePresent() error {
 	return nil
 }
 
-func (request *DockerRequest) InvokeAndDoWithContainer() error {
+func (request *DockerRequest) Execute() error {
 	request.ensureImagePresent()
 
 	ctx := context.Background()

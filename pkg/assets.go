@@ -7,7 +7,7 @@
 // api/schema/init.response.json
 // api/schema/project.json
 // api/schema/resource.json
-package internal
+package pkg
 
 import (
 	"bytes"
