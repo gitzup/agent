@@ -14,7 +14,7 @@ RUN make
 #   - installing "ca-certificates" & calling "update-ca-certificates" so Pub/Sub won't hang when connecting via 443/SSL
 ########################################################################################################################
 
-FROM ubuntu
+FROM ubuntu:18.04
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /go/src/github.com/gitzup/agent/agent .
