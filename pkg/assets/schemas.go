@@ -1,11 +1,11 @@
-package pkg
+package assets
 
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 
+	"github.com/go-errors/errors"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -31,7 +31,7 @@ type Schema struct {
 
 // Shortcut for loading a JSON schema, and panic-ing on errors
 func loadSchema(mainSchema interface{}, additionalSchemas ...interface{}) *Schema {
-	schema, err := NewSchema(mainSchema, additionalSchemas...)
+	schema, err := New(mainSchema, additionalSchemas...)
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +83,7 @@ func newJSONLoader(source interface{}) (*gojsonschema.JSONLoader, error) {
 // Each source may be one of:
 //  - *string, string: path to an embedded asset. This is used as Asset(<value>)
 //  - *[]byte, []byte: bytes containing the actual JSON schema source code
-func NewSchema(mainSchemaSource interface{}, additionalSchemaSources ...interface{}) (*Schema, error) {
+func New(mainSchemaSource interface{}, additionalSchemaSources ...interface{}) (*Schema, error) {
 
 	// create the main schema loader
 	schemaLoader := gojsonschema.NewSchemaLoader()
@@ -153,7 +153,7 @@ func (schema *Schema) Validate(source interface{}) (err error) {
 	}
 
 	if err != nil {
-		return nil
+		return err
 	} else if !result.Valid() {
 		var msg = ""
 		for _, e := range result.Errors() {

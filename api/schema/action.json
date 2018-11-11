@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://gitzup.com/v1/schema/action.json",
+    "$id": "http://gitzup.com/schema/v1/action.json",
     "description": "Resource protocol 'action'.",
     "type": "object",
     "additionalProperties": false,
@@ -19,18 +19,10 @@
             }
         },
         "cmd": {
-            "oneOf": [
-                {
-                    "type": "string",
-                    "minLength": 1
-                },
-                {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            ]
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     }
 }

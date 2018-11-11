@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://gitzup.com/v1/schema/init.request.json",
+    "$id": "http://gitzup.com/schema/v1/init.request.json",
     "description": "Resource protocol 'init' request.",
     "type": "object",
     "additionalProperties": false,

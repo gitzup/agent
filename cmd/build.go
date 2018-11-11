@@ -1,33 +1,45 @@
 package cmd
 
 import (
+	"context"
 	"io/ioutil"
-	"log"
 
-	"github.com/gitzup/agent/pkg"
+	. "github.com/gitzup/agent/internal/logger"
+	"github.com/gitzup/agent/pkg/build"
 	"github.com/spf13/cobra"
 )
 
 var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Process a build request.",
-	Long:  `This command will build the providing build request.`,
-	Args:  cobra.ExactArgs(2), // TODO: custom usage
+	Long:  `This command will build the provided build request.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		Logger().Info(args)
+		if len(args) < 1 {
+			Logger().Fatal("build ID is required")
+		}
+		if len(args) < 2 {
+			Logger().Fatal("build file is required (use '-' for stdin)")
+		}
+
 		id := args[0]
-		bytes, err := ioutil.ReadFile(args[1])
+		pipelineFile := args[1]
+
+		// TODO: handle pipeline file equaling "-"
+		bytes, err := ioutil.ReadFile(pipelineFile)
 		if err != nil {
-			log.Fatal(err)
+			Logger().WithError(err).Fatalf("failed reading '%s'", pipelineFile)
 		}
 
-		request, err := pkg.ParseBuildRequest(id, bytes, workspacePath)
+		request, err := build.New(id, workspacePath, bytes)
 		if err != nil {
-			log.Fatal(err)
+			Logger().WithError(err).Fatal("failed creating build request")
 		}
 
-		err = request.Apply()
+		// TODO: support timeout by using "context.WithTimeout(..)" as the context to "request.Apply(ctx)" method
+		err = request.Apply(context.WithValue(context.Background(), "request", request.Id()))
 		if err != nil {
-			log.Fatal(err)
+			Logger().WithError(err).Fatal("failed applying build request")
 		}
 
 		// TODO: receive apply result and print it as text/json

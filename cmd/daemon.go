@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"context"
-	"log"
+	"github.com/go-errors/errors"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/gitzup/agent/pkg"
+	. "github.com/gitzup/agent/internal/logger"
+	"github.com/gitzup/agent/pkg/build"
 	"github.com/spf13/cobra"
 )
 
@@ -13,8 +14,16 @@ var daemonCmd = &cobra.Command{
 	Use:   "daemon",
 	Short: "Start the Gitzup agent daemon.",
 	Long:  `This command will start the Gitzup agent daemon, processing build request coming in through the GCP Pub/Sub subscription.`,
-	Args:  cobra.ExactArgs(2), // TODO: custom usage
-	Run:   func(cmd *cobra.Command, args []string) { startDaemon(args[0], args[1]) },
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("GCP project ID is required")
+		}
+		if len(args) < 2 {
+			return errors.New("GCP Pub/Sub subscription name is required")
+		}
+		startDaemon(args[0], args[1])
+		return nil
+	},
 }
 
 func init() {
@@ -29,24 +38,29 @@ func startDaemon(gcpProject string, gcpSubscriptionName string) {
 	// Create the Pub/Sub client
 	client, err := pubsub.NewClient(ctx, gcpProject)
 	if err != nil {
-		log.Fatalf("Failed to create GCP Pub/Sub client: %v", err)
+		Logger().WithError(err).Fatal("Could not create Pub/Sub client")
 	}
-	defer client.Close()
+	defer func() {
+		err = client.Close()
+		if err != nil {
+			Logger().WithError(err).Error("Could not close PubSub client")
+		}
+	}()
 
 	// Locate the subscription, fail if missing
 	subscription := client.Subscription(gcpSubscriptionName)
 	exists, err := subscription.Exists(ctx)
 	if err != nil {
-		log.Fatalf("Failed checking if subscription exists: %v", err)
+		Logger().WithError(err).Fatalf("Failed verifying that subscription '%s' exists", gcpSubscriptionName)
 	} else if exists == false {
-		log.Fatalln("Subscription could not be found!")
+		Logger().WithError(err).Fatalf("Could not find subscription '%s'", subscription)
 	}
 
 	// Start receiving messages (in separate goroutines)
-	log.Printf("Subscribing to: %s", subscription)
+	Logger().Infof("Subscribing to: %s", subscription)
 	err = subscription.Receive(ctx, func(_ context.Context, msg *pubsub.Message) { handleMessage(msg) })
 	if err != nil {
-		log.Fatalf("Failed to subscribe to '%s': %v", subscription, err)
+		Logger().WithError(err).Fatalf("Could not subscribe to '%s'", subscription)
 	}
 }
 
@@ -54,24 +68,27 @@ func handleMessage(msg *pubsub.Message) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			// TODO: re-publish this message to the errors topic
+			// TODO: re-publish this message to the errors topic?
 			switch t := err.(type) {
 			case error:
-				log.Printf("Fatal error processing message '%s': %s\n", msg.ID, t.Error())
+				// TODO: print with stacktrace
+				Logger().WithError(t).Errorf("Failed processing message '%s'", msg.ID)
 			default:
-				log.Printf("Fatal error processing message: %#v\n", t)
+				// TODO: print with stacktrace
+				Logger().Errorf("Failed processing message '%s': %#v", msg.ID, t)
 			}
 		}
 	}()
 
 	msg.Ack()
 
-	request, err := pkg.ParseBuildRequest(msg.ID, msg.Data, workspacePath)
+	request, err := build.New(msg.ID, workspacePath, msg.Data)
 	if err != nil {
 		panic(err)
 	}
 
-	err = request.Apply()
+	// TODO: timeout support should be provided as metadata on the pub/sub message
+	err = request.Apply(context.WithValue(context.Background(), "request", request.Id()))
 	if err != nil {
 		panic(err)
 	}
