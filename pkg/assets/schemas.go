@@ -102,6 +102,9 @@ func New(mainSchemaSource interface{}, additionalSchemaSources ...interface{}) (
 
 	// compile the full schema
 	jsonLoader, err := newJSONLoader(mainSchemaSource)
+	if err != nil {
+		return nil, err
+	}
 	underlyingSchema, err := schemaLoader.Compile(*jsonLoader)
 	if err != nil {
 		return nil, err
