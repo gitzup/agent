@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"io"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -14,6 +16,17 @@ import (
 )
 
 type ContainerRunHandler func(ctx context.Context, c container.ContainerCreateCreatedBody) error
+
+func printLoop(ctx context.Context, input io.ReadCloser, printer func(logger *logrus.Entry, line string)) {
+	in := bufio.NewScanner(input)
+	for in.Scan() {
+		// TODO: exit when context is canceled
+		printer(From(ctx), in.Text())
+		if err := in.Err(); err != nil {
+			From(ctx).WithError(err).Error("failed copying output to logger")
+		}
+	}
+}
 
 func Run(
 	ctx context.Context,
@@ -73,11 +86,16 @@ func Run(
 		if err != nil {
 			return errors.WrapPrefix(err, "failed serializing request input to JSON", 0)
 		}
-		// TODO: consider checking errors from Write(b) & CloseWrite calls below
-		//noinspection GoUnhandledErrorResult
-		resp.Conn.Write(b)
-		//noinspection GoUnhandledErrorResult
-		resp.CloseWrite()
+		_, err = resp.Conn.Write(b)
+		if err != nil {
+			return errors.WrapPrefix(err, "failed writing input to stdin of container", 0)
+		}
+
+		// I think this flushes the stdin into the container
+		err = resp.CloseWrite()
+		if err != nil {
+			return errors.WrapPrefix(err, "failed writing input to stdin of container", 0)
+		}
 	}
 
 	// stream logs to our stdout
@@ -86,42 +104,33 @@ func Run(
 		ShowStderr: false,
 		Follow:     true,
 	})
-	//noinspection GoUnhandledErrorResult
-	defer stdout.Close()
+	defer func() {
+		err := stdout.Close()
+		if err != nil {
+			From(ctx).WithError(err).Warnf("failed closing stdout logs streams")
+		}
+	}()
 	if err != nil {
 		return errors.WrapPrefix(err, "failed fetching stdout log from container", 0)
 	}
-	go func() {
-		in := bufio.NewScanner(stdout)
-		for in.Scan() {
-			// TODO: exit when context is canceled
-			From(ctx).Info(in.Text())
-		}
-		if err := in.Err(); err != nil {
-			From(ctx).WithError(err).Error("failed copying container stdout to logger")
-		}
-	}()
+	go printLoop(ctx, stdout, func(logger *logrus.Entry, line string) { logger.Info(line) })
 
+	// stream logs to our stderr
 	stderr, err := cli.ContainerLogs(ctx, c.ID, types.ContainerLogsOptions{
 		ShowStdout: false,
 		ShowStderr: true,
 		Follow:     true,
 	})
-	//noinspection GoUnhandledErrorResult
-	defer stderr.Close()
+	defer func() {
+		err := stderr.Close()
+		if err != nil {
+			From(ctx).WithError(err).Warnf("failed closing stderr logs streams")
+		}
+	}()
 	if err != nil {
 		return errors.WrapPrefix(err, "failed fetching stderr log from container", 0)
 	}
-	go func() {
-		in := bufio.NewScanner(stderr)
-		for in.Scan() {
-			// TODO: exit when context is canceled
-			From(ctx).Warn(in.Text())
-		}
-		if err := in.Err(); err != nil {
-			From(ctx).WithError(err).Error("failed copying container stderr to logger")
-		}
-	}()
+	go printLoop(ctx, stderr, func(logger *logrus.Entry, line string) { logger.Warn(line) })
 
 	// if pre-exit handler provided, invoke it now
 	// TODO: run handler in goroutine, and abort when context is canceled
