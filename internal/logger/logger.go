@@ -10,6 +10,7 @@ import (
 
 var root *log.Entry
 
+// Initialize the logging infrastructure.
 func InitLogger(version string, caller bool, logLevel string, logFormat string) {
 	log.SetOutput(os.Stdout)
 	log.SetReportCaller(caller)
