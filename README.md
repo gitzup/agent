@@ -1,9 +1,9 @@
 # gitzup
 
-[![Build Status](https://travis-ci.com/kfirz/gitzup.svg?branch=master)](https://travis-ci.com/kfirz/gitzup)
-[![Go Report Card](https://goreportcard.com/badge/github.com/kfirz/gitzup?style=flat-square)](https://goreportcard.com/report/github.com/kfirz/gitzup)
-[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/kfirz/gitzup)
-[![Release](https://img.shields.io/github/release/kfirz/gitzup.svg?style=flat-square)](https://github.com/kfirz/gitzup/releases/latest)
+[![Build Status](https://travis-ci.com/gitzup/agent.svg?branch=master)](https://travis-ci.com/gitzup/agent)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gitzup/agent?style=flat-square)](https://goreportcard.com/report/github.com/gitzup/agent)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/gitzup/agent)
+[![Release](https://img.shields.io/github/release/gitzup/agent.svg?style=flat-square)](https://github.com/gitzup/agent/releases/latest)
 
 Gitzup is an opinionated DevOps platform for managing all development aspects, from infrastructure, through coding, to deployment.
 
