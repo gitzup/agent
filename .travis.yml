@@ -14,7 +14,7 @@ before_script:
 - echo -n "${DOCKER_IO_PASSWORD}" | docker login --username ${DOCKER_IO_USERNAME} --password-stdin
 
 script:
-- TAG=${TRAVIS_COMMIT} make push-docker
+- .travis.build.sh
 
 after_script:
 - rm -fv ~/.docker/config.json
